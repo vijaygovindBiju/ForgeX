@@ -1,0 +1,25 @@
+[package]
+name = "forgex"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "forgex"
+path = "src/main.rs"
+
+[dependencies]
+forgex-core = { path = "../core" }
+forgex-storage = { path = "../storage" }
+forgex-scoring = { path = "../scoring" }
+clap.workspace = true
+comfy-table.workspace = true
+colored.workspace = true
+directories.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+thiserror.workspace = true
