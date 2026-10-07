@@ -5,6 +5,7 @@ use colored::Colorize;
 mod app;
 mod commands;
 mod ui;
+mod watcher;
 
 use app::AppContext;
 use commands::{
@@ -16,6 +17,7 @@ use commands::{
     recover::execute_recover,
     serve::execute_serve,
     status::execute_status,
+    watch::execute_watch,
     task::{
         execute_task_add, execute_task_complete, execute_task_delete,
         execute_task_list, execute_task_miss, execute_task_start,
@@ -89,6 +91,18 @@ pub enum Commands {
 
         #[arg(long, help = "Custom pairing token (auto-generated if omitted)")]
         token: Option<String>,
+    },
+
+    #[command(about = "Monitor active window on Linux and auto-classify activity in background (MVP 2)")]
+    Watch {
+        #[arg(short, long, default_value_t = 5, help = "Sampling interval in seconds")]
+        interval: u64,
+
+        #[arg(short, long, default_value_t = 60, help = "Flush interval in seconds")]
+        flush: u64,
+
+        #[arg(short, long, help = "Run silently without printing activity logs")]
+        quiet: bool,
     },
 }
 
@@ -219,6 +233,9 @@ async fn main() {
         Some(Commands::Init { sample }) => execute_init(&ctx, sample),
         Some(Commands::Serve { bind, port, token }) => {
             execute_serve(&ctx, &bind, port, token.as_deref()).await
+        }
+        Some(Commands::Watch { interval, flush, quiet }) => {
+            execute_watch(&ctx, interval, flush, quiet).await
         }
         Some(Commands::Task { action }) => match action {
             TaskAction::Add {

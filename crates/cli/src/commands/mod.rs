@@ -7,3 +7,4 @@ pub mod recover;
 pub mod serve;
 pub mod status;
 pub mod task;
+pub mod watch;

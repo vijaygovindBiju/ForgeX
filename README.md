@@ -107,6 +107,7 @@ forgex status
 | `forgex recover` | Shows active restrictions and available tasks to recover freedom |
 | `forgex evaluate [--auto-miss]`| Checks for past-due commitments exceeding the grace period |
 | `forgex serve [--port 8080]` | Runs local network sync daemon for mobile and cross-device sync |
+| `forgex watch [--interval 5]` | Monitors active Hyprland/Wayland window and auto-classifies activity (MVP 2) |
 | `forgex config show / set` | Views and adjusts configuration |
 
 ---
