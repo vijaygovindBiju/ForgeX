@@ -82,10 +82,59 @@ Initialize the system with sample daily commitments and a starter Save Day:
 forgex init --sample
 ```
 
-View your dashboard:
+### Launching ForgeX
+
+#### 1. Interactive Terminal UI (TUI)
+Launch the interactive dashboard with live background window monitoring:
+
+```bash
+forgex
+```
+- **Live Background Tracking**: Automatically monitors active windows (Hyprland / Wayland / X11), classifies activity, and records to SQLite.
+- **Sections**: Dashboard (`1`), Commitments (`2`), Behavior (`3`), Recovery (`4`), Character (`5`), Settings (`6`).
+- **Quick Shortcuts**: `n` new commitment, `l` manual activity log, `?` help guide, `q` quit.
+
+#### 2. Terminal CLI Status
+Print the quick terminal status dashboard:
 
 ```bash
 forgex status
+```
+
+---
+
+## Linux Activity Watcher (Hyprland / Wayland / X11)
+
+ForgeX automatically observes active window titles and classes to categorize screen time into Productive, Essential, Medium Entertainment (e.g. YouTube, Netflix), and High Entertainment (e.g. Shorts, Reels, Steam games).
+
+### Running in Foreground / Dedicated Terminal:
+```bash
+forgex watch [--interval 2] [--flush 30]
+```
+
+### Running 24/7 as a Systemd Background Service:
+To have ForgeX quietly watch your windows in the background on login:
+
+1. Create `~/.config/systemd/user/forgex-watcher.service`:
+```ini
+[Unit]
+Description=ForgeX Linux Activity Watcher
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.cargo/bin/forgex watch --quiet
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+```
+
+2. Enable and start:
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now forgex-watcher
 ```
 
 ---
@@ -94,20 +143,21 @@ forgex status
 
 | Command | Description |
 | :--- | :--- |
-| `forgex status` | Displays the daily dashboard (commitments, behavior, penalties, Save Days) |
+| `forgex` | Launches the interactive Ratatui TUI dashboard with live background watcher |
+| `forgex status` | Displays the daily CLI dashboard (commitments, behavior, penalties, Save Days) |
 | `forgex init [--sample]` | Initializes database and configuration |
 | `forgex task add` | Creates a commitment (`-t "Title" -d 45 -i 4 -e 4`) |
 | `forgex task list` | Lists scheduled and historical commitments |
 | `forgex task start <ID>` | Marks a commitment as active |
 | `forgex task complete <ID>` | Marks commitment complete, earning recovery reductions and screen time |
 | `forgex task miss <ID>` | Records a miss, running avoidance detection and consequence formulas |
-| `forgex activity log` | Logs activity (`-a "Firefox" --detail "youtube.com" -d 30 -c high`) |
+| `forgex activity log` | Logs activity manually (`-a "Firefox" --detail "youtube.com" -d 30 -c high`) |
 | `forgex activity list` | Lists logged activities |
 | `forgex character` | Displays your character profile metrics and level |
 | `forgex recover` | Shows active restrictions and available tasks to recover freedom |
 | `forgex evaluate [--auto-miss]`| Checks for past-due commitments exceeding the grace period |
 | `forgex serve [--port 8080]` | Runs local network sync daemon for mobile and cross-device sync |
-| `forgex watch [--interval 5]` | Monitors active Hyprland/Wayland window and auto-classifies activity (MVP 2) |
+| `forgex watch [--interval 2]` | Monitors active Hyprland/Wayland window and auto-classifies activity (MVP 2) |
 | `forgex config show / set` | Views and adjusts configuration |
 
 ---

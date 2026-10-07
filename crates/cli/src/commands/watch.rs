@@ -29,10 +29,7 @@ pub async fn execute_watch(
     let mut accumulated_secs: u64 = 0;
 
     let flush_activity = |ctx: &AppContext, win: &ActiveWindow, start: DateTime<Utc>, secs: u64, quiet: bool| -> Result<()> {
-        let mins = (secs as f32 / 60.0).round() as u32;
-        if mins == 0 {
-            return Ok(());
-        }
+        let mins = ((secs as f32 / 60.0).round() as u32).max(1);
 
         let category = ActivityClassifier::classify(&win.app_class, &win.title);
         let detail = if win.title.is_empty() { None } else { Some(win.title.clone()) };
@@ -87,7 +84,7 @@ pub async fn execute_watch(
             _ = tokio::signal::ctrl_c() => {
                 println!("\n{}", "Stopping ForgeX watcher...".yellow());
                 if let Some(ref win) = current_window {
-                    if accumulated_secs >= 30 {
+                    if accumulated_secs >= flush_secs.min(10) {
                         let _ = flush_activity(ctx, win, current_start, accumulated_secs, quiet);
                     }
                 }
@@ -110,7 +107,7 @@ pub async fn execute_watch(
                     }
                     (Some(prev), _) => {
                         // Window switched
-                        if accumulated_secs >= 30 {
+                        if accumulated_secs >= flush_secs.min(10) {
                             flush_activity(ctx, prev, current_start, accumulated_secs, quiet)?;
                         }
                         current_window = active;

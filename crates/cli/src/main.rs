@@ -4,6 +4,7 @@ use colored::Colorize;
 
 mod app;
 mod commands;
+mod tui;
 mod ui;
 mod watcher;
 
@@ -229,7 +230,8 @@ async fn main() {
     };
 
     let result = match cli.command {
-        None | Some(Commands::Status) => execute_status(&ctx, cli.json),
+        None => tui::run_tui(&mut ctx),
+        Some(Commands::Status) => execute_status(&ctx, cli.json),
         Some(Commands::Init { sample }) => execute_init(&ctx, sample),
         Some(Commands::Serve { bind, port, token }) => {
             execute_serve(&ctx, &bind, port, token.as_deref()).await
