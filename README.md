@@ -19,10 +19,14 @@ ForgeX is organized as a modular Rust workspace:
 ```text
 ForgeX/
 ├── Cargo.toml             # Root workspace definition
+├── apps/
+│   └── mobile/            # Flutter cross-platform mobile client (Android & Desktop)
 ├── crates/
 │   ├── core/              # Domain models (Commitments, Activities, Penalties, Save Days, Config)
 │   ├── storage/           # Embedded SQLite persistence & schema migrations via rusqlite
 │   ├── scoring/           # Avoidance detection, penalty formulas, recovery engine, character metrics
+│   ├── ffi/               # C/Dart shared library (libforgex_ffi.so) for native offline execution
+│   ├── server/            # Async REST sync daemon with pairing authentication
 │   └── cli/               # forgex binary with rich terminal UI, status dashboard, and commands
 ```
 
@@ -102,7 +106,27 @@ forgex status
 | `forgex character` | Displays your character profile metrics and level |
 | `forgex recover` | Shows active restrictions and available tasks to recover freedom |
 | `forgex evaluate [--auto-miss]`| Checks for past-due commitments exceeding the grace period |
+| `forgex serve [--port 8080]` | Runs local network sync daemon for mobile and cross-device sync |
 | `forgex config show / set` | Views and adjusts configuration |
+
+---
+
+## Cross-Platform Mobile App (Android)
+
+The Flutter mobile client is located in [`apps/mobile`](file:///media/pirate/Shared/currently%20working/ForgeX/apps/mobile).
+
+### Running on Android
+1. Start the sync daemon on your laptop:
+   ```bash
+   forgex serve
+   ```
+2. Note the **Pairing Token** and your laptop's Wi-Fi IP address printed in the terminal.
+3. Launch the Android app:
+   ```bash
+   cd apps/mobile
+   flutter run -d android
+   ```
+4. Open the **Settings** tab in the app, enter your laptop's URL and pairing token, and tap **Save & Connect**. Your commitments, penalties, and activities now synchronize in real time.
 
 ---
 

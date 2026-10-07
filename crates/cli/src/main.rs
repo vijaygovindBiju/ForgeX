@@ -14,6 +14,7 @@ use commands::{
     evaluate::execute_evaluate,
     init::execute_init,
     recover::execute_recover,
+    serve::execute_serve,
     status::execute_status,
     task::{
         execute_task_add, execute_task_complete, execute_task_delete,
@@ -76,6 +77,18 @@ pub enum Commands {
     Config {
         #[command(subcommand)]
         action: ConfigAction,
+    },
+
+    #[command(about = "Run local network sync daemon for mobile and cross-device syncing")]
+    Serve {
+        #[arg(long, default_value = "0.0.0.0", help = "Host interface to bind to")]
+        bind: String,
+
+        #[arg(short, long, default_value_t = 8080, help = "Port to listen on")]
+        port: u16,
+
+        #[arg(long, help = "Custom pairing token (auto-generated if omitted)")]
+        token: Option<String>,
     },
 }
 
@@ -189,7 +202,8 @@ pub enum ConfigAction {
     },
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     let mut ctx = match AppContext::init(cli.db, cli.config) {
@@ -203,6 +217,9 @@ fn main() {
     let result = match cli.command {
         None | Some(Commands::Status) => execute_status(&ctx, cli.json),
         Some(Commands::Init { sample }) => execute_init(&ctx, sample),
+        Some(Commands::Serve { bind, port, token }) => {
+            execute_serve(&ctx, &bind, port, token.as_deref()).await
+        }
         Some(Commands::Task { action }) => match action {
             TaskAction::Add {
                 title,
