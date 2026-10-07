@@ -70,7 +70,14 @@ pub async fn run_live_watcher(
                 let active = WindowObserver::get_active_window();
 
                 match (&current_window, &active) {
-                    (Some(prev), Some(now)) if prev.app_class == now.app_class && prev.title == now.title => {
+                    (Some(prev), Some(now))
+                        if prev.app_class == now.app_class && (
+                            prev.title == now.title || (
+                                ActivityClassifier::classify(&prev.app_class, &prev.title).is_entertainment()
+                                && ActivityClassifier::classify(&now.app_class, &now.title).is_entertainment()
+                            )
+                        ) =>
+                    {
                         accumulated_secs += interval_secs;
 
                         let cat = ActivityClassifier::classify(&now.app_class, &now.title);
@@ -85,14 +92,15 @@ pub async fn run_live_watcher(
 
                         // Auto-flush every minute of continuous activity
                         if accumulated_secs >= flush_threshold_secs {
-                            flush_activity(&db, prev, current_start, accumulated_secs);
+                            flush_activity(&db, now, current_start, accumulated_secs);
                             current_start = Utc::now();
                             accumulated_secs = 0;
                         }
+                        current_window = Some(now.clone());
                     }
                     (Some(prev), _) => {
-                        // Window switched or title changed
-                        if accumulated_secs >= 10 {
+                        // Window switched or category changed
+                        if accumulated_secs >= 5 {
                             flush_activity(&db, prev, current_start, accumulated_secs);
                         }
 

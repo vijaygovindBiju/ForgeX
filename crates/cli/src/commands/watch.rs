@@ -95,19 +95,27 @@ pub async fn execute_watch(
                 let active = WindowObserver::get_active_window();
 
                 match (&current_window, &active) {
-                    (Some(prev), Some(now)) if prev.app_class == now.app_class && prev.title == now.title => {
+                    (Some(prev), Some(now))
+                        if prev.app_class == now.app_class && (
+                            prev.title == now.title || (
+                                ActivityClassifier::classify(&prev.app_class, &prev.title).is_entertainment()
+                                && ActivityClassifier::classify(&now.app_class, &now.title).is_entertainment()
+                            )
+                        ) =>
+                    {
                         accumulated_secs += interval_secs;
 
                         // Auto-flush every flush_secs
                         if accumulated_secs >= flush_secs {
-                            flush_activity(ctx, prev, current_start, accumulated_secs, quiet)?;
+                            flush_activity(ctx, now, current_start, accumulated_secs, quiet)?;
                             current_start = Utc::now();
                             accumulated_secs = 0;
                         }
+                        current_window = Some(now.clone());
                     }
                     (Some(prev), _) => {
                         // Window switched
-                        if accumulated_secs >= flush_secs.min(10) {
+                        if accumulated_secs >= flush_secs.min(5) {
                             flush_activity(ctx, prev, current_start, accumulated_secs, quiet)?;
                         }
                         current_window = active;
